@@ -10,6 +10,8 @@ class PortaCorrederaCard extends HTMLElement {
       started_at_entity: "input_datetime.porta_carretera_moviment_inici",
       open_duration_entity: "input_number.porta_carretera_temps_obertura",
       close_duration_entity: "input_number.porta_carretera_temps_tancament",
+      open_switch: "switch.porta_carretera_obre_relay",
+      close_switch: "switch.porta_carretera_tanca_relay",
       open_sensor: "binary_sensor.jardi_porta_carretera_obre_relay_porta_oberta",
       closed_sensor: "binary_sensor.jardi_porta_carretera_tanca_relay_porta_tancada",
       mid_position: 50,
@@ -64,12 +66,14 @@ class PortaCorrederaCard extends HTMLElement {
 
     const cover = this._hass.states[this.config.entity];
     const movement = this.getMovementState();
+    const unavailable = this.hasUnavailableCoreEntities();
     const progress = this.getProgress();
-    const status = this.getStatusLabel(cover, movement);
-    const details = this.getDetailsLabel(progress, movement);
-    const stateClass = this.getStateClass(cover, movement);
-    const canOpen = cover?.state !== "open" && movement !== "obrint" && movement !== "tancant";
-    const canClose = cover?.state !== "closed" && movement !== "obrint" && movement !== "tancant";
+    const status = unavailable ? "Desconegut" : this.getStatusLabel(cover, movement);
+    const details = unavailable ? "Alguna entitat necessaria no esta disponible" : this.getDetailsLabel(progress, movement);
+    const stateClass = unavailable ? "unavailable" : this.getStateClass(cover, movement);
+    const canOpen = !unavailable && cover?.state !== "open" && movement !== "obrint" && movement !== "tancant";
+    const canClose = !unavailable && cover?.state !== "closed" && movement !== "obrint" && movement !== "tancant";
+    const sceneClass = unavailable ? "scene unavailable-scene" : "scene";
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -188,6 +192,11 @@ class PortaCorrederaCard extends HTMLElement {
           box-shadow: 0 0 0 4px rgba(249, 115, 115, 0.18);
         }
 
+        .status.unavailable::before {
+          background: #a1a1aa;
+          box-shadow: 0 0 0 4px rgba(161, 161, 170, 0.18);
+        }
+
         .scene {
           background:
             linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
@@ -253,12 +262,40 @@ class PortaCorrederaCard extends HTMLElement {
           border-radius: 8px;
           bottom: 32px;
           box-shadow: 0 12px 22px rgba(8, 145, 178, 0.24), 0 7px 18px rgba(0, 0, 0, 0.2);
-          left: 7%;
+          left: 11%;
           position: absolute;
           top: 40px;
-          transform: translateX(calc(-62% * var(--open)));
+          transform: translateX(calc(15% * var(--open)));
           transition: transform 180ms linear;
-          width: 86%;
+          width: 68%;
+        }
+
+        .unavailable-scene .gate {
+          display: none;
+        }
+
+        .empty-state {
+          align-items: center;
+          color: var(--secondary-text-color);
+          display: none;
+          flex-direction: column;
+          font-size: 13px;
+          font-weight: 650;
+          gap: 8px;
+          inset: 0;
+          justify-content: center;
+          position: absolute;
+          text-align: center;
+          z-index: 3;
+        }
+
+        .empty-state ha-icon {
+          --mdc-icon-size: 28px;
+          color: #a1a1aa;
+        }
+
+        .unavailable-scene .empty-state {
+          display: flex;
         }
 
         .ground {
@@ -397,11 +434,15 @@ class PortaCorrederaCard extends HTMLElement {
           <div class="status ${stateClass}">${this.escape(status)}</div>
         </div>
 
-        <div class="scene" aria-label="${this.escape(status)}">
+        <div class="${sceneClass}" aria-label="${this.escape(status)}">
           <div class="rail"></div>
           <div class="post left"></div>
           <div class="post right"></div>
           <div class="gate"></div>
+          <div class="empty-state">
+            <ha-icon icon="mdi:cloud-alert-outline"></ha-icon>
+            <span>Entitats no disponibles</span>
+          </div>
           <div class="ground"></div>
         </div>
 
@@ -436,6 +477,21 @@ class PortaCorrederaCard extends HTMLElement {
 
   getMovementState() {
     return this._hass?.states[this.config.movement_entity]?.state ?? "unknown";
+  }
+
+  hasUnavailableCoreEntities() {
+    return [
+      this.config.entity,
+      this.config.open_switch,
+      this.config.close_switch,
+      this.config.open_sensor,
+      this.config.closed_sensor,
+    ].some((entityId) => this.isUnavailable(entityId));
+  }
+
+  isUnavailable(entityId) {
+    const state = this._hass?.states[entityId]?.state;
+    return !state || state === "unknown" || state === "unavailable";
   }
 
   getProgress() {

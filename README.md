@@ -44,6 +44,8 @@ movement_entity: input_select.porta_carretera_moviment
 started_at_entity: input_datetime.porta_carretera_moviment_inici
 open_duration_entity: input_number.porta_carretera_temps_obertura
 close_duration_entity: input_number.porta_carretera_temps_tancament
+open_switch: switch.porta_carretera_obre_relay
+close_switch: switch.porta_carretera_tanca_relay
 open_sensor: binary_sensor.jardi_porta_carretera_obre_relay_porta_oberta
 closed_sensor: binary_sensor.jardi_porta_carretera_tanca_relay_porta_tancada
 mid_position: 50
@@ -59,6 +61,8 @@ mid_position: 50
 | `started_at_entity` | no | `input_datetime.porta_carretera_moviment_inici` | Movement start time. |
 | `open_duration_entity` | no | `input_number.porta_carretera_temps_obertura` | Estimated opening duration in seconds. |
 | `close_duration_entity` | no | `input_number.porta_carretera_temps_tancament` | Estimated closing duration in seconds. |
+| `open_switch` | no | `switch.porta_carretera_obre_relay` | Switch used to start opening. Used to detect unavailable control state. |
+| `close_switch` | no | `switch.porta_carretera_tanca_relay` | Switch used to start closing. Used to detect unavailable control state. |
 | `open_sensor` | no | `binary_sensor.jardi_porta_carretera_obre_relay_porta_oberta` | End sensor for fully open state. |
 | `closed_sensor` | no | `binary_sensor.jardi_porta_carretera_tanca_relay_porta_tancada` | End sensor for fully closed state. |
 | `mid_position` | no | `50` | Visual position when the gate is neither open nor closed and not moving. |
