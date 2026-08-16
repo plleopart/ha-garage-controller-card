@@ -260,14 +260,20 @@ class PortaCorrederaCard extends HTMLElement {
             );
           border: 1px solid rgba(14, 116, 144, 0.9);
           border-radius: 8px;
-          bottom: 32px;
           box-shadow: 0 12px 22px rgba(8, 145, 178, 0.24), 0 7px 18px rgba(0, 0, 0, 0.2);
-          left: 11%;
-          position: absolute;
-          top: 40px;
-          transform: translateX(calc(15% * var(--open)));
+          height: 100%;
+          transform: translateX(calc(72% * var(--open)));
           transition: transform 180ms linear;
-          width: 68%;
+          width: 100%;
+        }
+
+        .gate-window {
+          bottom: 36px;
+          left: 46px;
+          overflow: hidden;
+          position: absolute;
+          right: 46px;
+          top: 44px;
         }
 
         .unavailable-scene .gate {
@@ -361,7 +367,7 @@ class PortaCorrederaCard extends HTMLElement {
           justify-content: center;
           min-height: 46px;
           padding: 0 14px;
-          transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+          transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
         }
 
         button ha-icon {
@@ -371,7 +377,7 @@ class PortaCorrederaCard extends HTMLElement {
         button:hover:not(:disabled) {
           background: color-mix(in srgb, var(--primary-color), var(--card-background-color) 84%);
           border-color: color-mix(in srgb, var(--primary-color), var(--divider-color) 30%);
-          transform: translateY(-1px);
+          box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color), transparent 70%);
         }
 
         button:disabled {
@@ -417,6 +423,11 @@ class PortaCorrederaCard extends HTMLElement {
           .controls {
             grid-template-columns: 1fr;
           }
+
+          .gate-window {
+            left: 38px;
+            right: 38px;
+          }
         }
       </style>
 
@@ -438,7 +449,9 @@ class PortaCorrederaCard extends HTMLElement {
           <div class="rail"></div>
           <div class="post left"></div>
           <div class="post right"></div>
-          <div class="gate"></div>
+          <div class="gate-window">
+            <div class="gate"></div>
+          </div>
           <div class="empty-state">
             <ha-icon icon="mdi:cloud-alert-outline"></ha-icon>
             <span>Entitats no disponibles</span>
@@ -517,7 +530,7 @@ class PortaCorrederaCard extends HTMLElement {
     const durationEntity = movement === "obrint"
       ? this.config.open_duration_entity
       : this.config.close_duration_entity;
-    const durationSeconds = Number(states[durationEntity]?.state) || 18;
+    const durationSeconds = Number(states[durationEntity]?.state) || 24;
 
     if (!startedAt) {
       return movement === "obrint" ? 5 : 95;
