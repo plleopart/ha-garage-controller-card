@@ -262,7 +262,7 @@ class PortaCorrederaCard extends HTMLElement {
           border-radius: 8px;
           box-shadow: 0 12px 22px rgba(8, 145, 178, 0.24), 0 7px 18px rgba(0, 0, 0, 0.2);
           height: 100%;
-          transform: translateX(calc(72% * var(--open)));
+          transform: translateX(calc(108% * var(--open)));
           transition: transform 180ms linear;
           width: 100%;
         }
