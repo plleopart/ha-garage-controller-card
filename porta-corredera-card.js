@@ -367,17 +367,18 @@ class PortaCorrederaCard extends HTMLElement {
           justify-content: center;
           min-height: 46px;
           padding: 0 14px;
-          transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+          transition: opacity 140ms ease;
         }
 
-        button ha-icon {
+        button ha-icon,
+        button span {
           --mdc-icon-size: 20px;
+          pointer-events: none;
         }
 
         button:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--primary-color), var(--card-background-color) 84%);
-          border-color: color-mix(in srgb, var(--primary-color), var(--divider-color) 30%);
-          box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color), transparent 70%);
+          background: color-mix(in srgb, var(--card-background-color), white 7%);
+          border-color: color-mix(in srgb, var(--divider-color), transparent 12%);
         }
 
         button:disabled {
