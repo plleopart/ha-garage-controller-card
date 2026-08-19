@@ -48,6 +48,7 @@ open_switch: switch.porta_carretera_tanca_relay
 close_switch: switch.porta_carretera_obre_relay
 open_sensor: binary_sensor.jardi_porta_carretera_obre_relay_porta_oberta
 closed_sensor: binary_sensor.jardi_porta_carretera_tanca_relay_porta_tancada
+button_cooldown_ms: 3000
 mid_position: 50
 ```
 
@@ -65,6 +66,7 @@ mid_position: 50
 | `close_switch` | no | `switch.porta_carretera_obre_relay` | Switch used to start closing. Used to detect unavailable control state. |
 | `open_sensor` | no | `binary_sensor.jardi_porta_carretera_obre_relay_porta_oberta` | End sensor for fully open state. |
 | `closed_sensor` | no | `binary_sensor.jardi_porta_carretera_tanca_relay_porta_tancada` | End sensor for fully closed state. |
+| `button_cooldown_ms` | no | `3000` | Milliseconds to disable both buttons after sending a command. |
 | `mid_position` | no | `50` | Visual position when the gate is neither open nor closed and not moving. |
 
 ## Development

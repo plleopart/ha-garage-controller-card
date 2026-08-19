@@ -14,6 +14,7 @@ class PortaCorrederaCard extends HTMLElement {
       close_switch: "switch.porta_carretera_obre_relay",
       open_sensor: "binary_sensor.jardi_porta_carretera_obre_relay_porta_oberta",
       closed_sensor: "binary_sensor.jardi_porta_carretera_tanca_relay_porta_tancada",
+      button_cooldown_ms: 3000,
       mid_position: 50,
       ...config,
     };
@@ -32,6 +33,10 @@ class PortaCorrederaCard extends HTMLElement {
   disconnectedCallback() {
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
+    }
+
+    if (this.cooldownTimer) {
+      clearTimeout(this.cooldownTimer);
     }
   }
 
@@ -68,11 +73,14 @@ class PortaCorrederaCard extends HTMLElement {
     const movement = this.getMovementState();
     const unavailable = this.hasUnavailableCoreEntities();
     const progress = this.getProgress();
+    const coolingDown = this.isCoolingDown();
     const status = unavailable ? "Desconegut" : this.getStatusLabel(cover, movement);
-    const details = unavailable ? "Alguna entitat necessaria no esta disponible" : this.getDetailsLabel(progress, movement);
+    const details = unavailable
+      ? "Alguna entitat necessaria no esta disponible"
+      : this.getDetailsLabel(progress, movement, coolingDown);
     const stateClass = unavailable ? "unavailable" : this.getStateClass(cover, movement);
-    const canOpen = !unavailable && cover?.state !== "open" && movement !== "obrint" && movement !== "tancant";
-    const canClose = !unavailable && cover?.state !== "closed" && movement !== "obrint" && movement !== "tancant";
+    const canOpen = !unavailable && !coolingDown && cover?.state !== "open";
+    const canClose = !unavailable && !coolingDown && cover?.state !== "closed";
     const sceneClass = unavailable ? "scene unavailable-scene" : "scene";
 
     this.shadowRoot.innerHTML = `
@@ -481,10 +489,12 @@ class PortaCorrederaCard extends HTMLElement {
     `;
 
     this.shadowRoot.getElementById("openButton")?.addEventListener("click", () => {
+      this.startButtonCooldown();
       this._hass.callService("cover", "open_cover", { entity_id: this.config.entity });
     });
 
     this.shadowRoot.getElementById("closeButton")?.addEventListener("click", () => {
+      this.startButtonCooldown();
       this._hass.callService("cover", "close_cover", { entity_id: this.config.entity });
     });
   }
@@ -506,6 +516,26 @@ class PortaCorrederaCard extends HTMLElement {
   isUnavailable(entityId) {
     const state = this._hass?.states[entityId]?.state;
     return !state || state === "unknown" || state === "unavailable";
+  }
+
+  isCoolingDown() {
+    return Date.now() < (this.cooldownUntil ?? 0);
+  }
+
+  startButtonCooldown() {
+    const configuredMs = Number(this.config.button_cooldown_ms);
+    const cooldownMs = Math.max(0, Number.isFinite(configuredMs) ? configuredMs : 3000);
+    this.cooldownUntil = Date.now() + cooldownMs;
+
+    if (this.cooldownTimer) {
+      clearTimeout(this.cooldownTimer);
+    }
+
+    this.render();
+    this.cooldownTimer = setTimeout(() => {
+      this.cooldownTimer = null;
+      this.render();
+    }, cooldownMs);
   }
 
   getProgress() {
@@ -588,9 +618,13 @@ class PortaCorrederaCard extends HTMLElement {
     return "unknown";
   }
 
-  getDetailsLabel(progress, movement) {
+  getDetailsLabel(progress, movement, coolingDown) {
     if (movement === "error") {
       return "Cap final de carrera actiu quan ha acabat el temps estimat";
+    }
+
+    if (coolingDown) {
+      return "Ordre enviada";
     }
 
     if (movement === "obrint" || movement === "tancant") {
